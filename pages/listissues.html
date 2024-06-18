@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Issue List</title>
+    <style>
+      table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 1200px;
+      }
+
+      td,
+      th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+      }
+
+      tr:nth-child(even) {
+        background-color: #dddddd;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>LMS - List All Issues</h2>
+    <p id="output"></p>
+    <table id="issueList"></table>
+
+    <script type="text/javascript" defer>
+      window.addEventListener("load", fetchAllIssues);
+      const output = document.querySelector("#output");
+
+      async function fetchAllIssues() {
+        const response = await fetch("http://localhost:5101/issuerequest");
+        const { issues } = await response.json();
+        console.log(issues);
+
+        if (issues.length == 0) {
+          output.textContent = "No issues in the library";
+        }
+
+        const allIssues = issues.map((issue, index) => {
+          return `<tr>
+                  <td>${issue.ReqID}</td>
+                  <td>${issue.bookId}</td>
+                  <td>${issue.readerId}</td>
+                  <td>${issue.RequestDate}</td>
+                  <td>${issue.requestType}</td>
+                  <td><button class="approveBtn" onclick="handleBookApprove(${issue.ReqID}, ${issue.bookId}, ${issue.readerId})">Approve</button>
+                    <button class="rejectBtn" name="${issue.ReqID}" >Reject</button></td>
+                </tr>`;
+        });
+
+        document.getElementById("issueList").innerHTML = `<tr>
+                                                        <th>Req.ID.</th>
+                                                        <th>Book Id</th>
+                                                        <th>Reader Id</th>
+                                                        <th>Request Date</th>
+                                                        <th>Request Type</th>
+                                                        <th>Approve/Reject </th>
+                                                      </tr> ${allIssues.join(
+                                                        ","
+                                                      )}`;
+      }
+
+      async function handleBookApprove(reqId, bookId, readerId) {
+        console.log("Approve", reqId, bookId, readerId);
+
+        const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+        const data = {
+          isbn: bookId,
+          readerId,
+          issueApproverId: currentUser.id,
+          issueStatus: "approve",
+        };
+
+        const response = await fetch(
+          `http://localhost:5101/approveBookRequest/${reqId}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          }
+        );
+        const resData = await response.json();
+        // console.log(resData)
+        location.reload();
+      }
+
+      async function handleBookReject(e) {
+        console.log("Reject");
+      }
+    </script>
+  </body>
+</html>

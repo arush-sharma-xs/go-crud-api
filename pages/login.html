@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Page</title>
+  </head>
+  <body>
+    <h2>LMS - Login System</h2>
+    <p id="error" style="color: red"></p>
+
+    <form action="#" id="loginForm">
+      <input type="email" name="email" placeholder="Enter your Email Id" />
+      <button type="submit">Login</button><br />
+      <a href="/createaccount">Create New Account</a>
+    </form>
+
+    <script type="text/javascript">
+      const loginForm = document.getElementById("loginForm");
+
+      const handleLogin = async (e) => {
+        e.preventDefault();
+        const formdata = new FormData(loginForm);
+        const email = formdata.get("email");
+
+        let emailRegex = /^[a-zA-Z][a-zA-Z0-9.]+@[a-zA-Z]+[.](com|in|edu)/;
+        if (!emailRegex.test(email)) {
+          error.textContent = "enter valid Email Id";
+          return;
+        }
+
+        const res = await fetch("http://localhost:5101/auth", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ libId: 1, email: email.trim() }),
+        });
+        const result = await res.json();
+
+        if (res.status === 200) {
+          const user = result.userData;
+          console.log(user);
+          localStorage.setItem(
+            "currentUser",
+            JSON.stringify({
+              id: parseInt(user.ID),
+              libId: 1,
+              email: user.email,
+            })
+          );
+
+          if (user.role === "admin") {
+            window.location = "/adminpage";
+          } else {
+            window.location = "/readerpage";
+          }
+        } else {
+          document.getElementById("error").textContent = result.error;
+        }
+      };
+      window.addEventListener("submit", handleLogin);
+    </script>
+  </body>
+</html>

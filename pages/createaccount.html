@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create User</title>
+  </head>
+  <body>
+    <div>
+      <h1>LMS - create New Account</h1>
+      <form action="#" id="createAccountForm">
+        <label for="name">Name: </label>
+        <input type="text" name="name" id="name" required />
+        <br />
+        <label for="email">Email:</label>
+        <input type="email" name="email" id="email" required />
+        <br />
+        <label for="contactNumber">Contact Number:</label>
+        <input type="text" name="contactNumber" id="contactNumber" required />
+        <br />
+        <label for="role">Role:</label>
+        <select name="role" id="role">
+          <option value="admin">Admin</option>
+          <option value="reader">Reader</option>
+        </select>
+        <br />
+        <p id="result" style="color: green"></p>
+        <p id="error" style="color: red"></p>
+        <br />
+        <button type="submit">Create</button>
+      </form>
+    </div>
+    <script type="text/javascript">
+      const createAccountForm = document.querySelector("#createAccountForm");
+      const error = document.querySelector("#error");
+      const result = document.querySelector("#result");
+
+      const handleCreateAccount = async (e) => {
+        e.preventDefault();
+        const form = new FormData(createAccountForm);
+
+        for (const pair of form.entries()) {
+          // if invalid inputs --- falsy value
+          if (!pair[1]) {
+            error.textContent = pair[0] + " field is required...";
+            return;
+          }
+          error.textContent = "";
+        }
+
+        let regex = /^[a-zA-Z][a-zA-Z \\s]+$/;
+        if (!regex.test(form.get("name"))) {
+          error.textContent = "enter valid name";
+          return;
+        }
+
+        let emailRegex = /^[a-zA-Z][a-zA-Z0-9.]+@[a-zA-Z]+[.](com|in|edu)/;
+        if (!emailRegex.test(form.get("email"))) {
+          error.textContent = "enter valid email Id";
+          return;
+        }
+
+        let mobRegex = /^[6789+]\d{9}$/;
+        if (!mobRegex.test(form.get("contactNumber"))) {
+          error.textContent = "enter valid mobile Number Id";
+          return;
+        }
+
+        // send Data to server
+        const book = {
+          libId: 1,
+          name: form.get("name").trim(),
+          email: form.get("email").trim(),
+          contactNumber: form.get("contactNumber").trim(),
+          role: form.get("role"),
+        };
+
+        console.log(book);
+
+        const response = await fetch("/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(book),
+        });
+
+        const res = await response.json();
+
+        !res.status
+          ? (error.textContent = res.error)
+          : (result.textContent = res.status);
+      };
+
+      createAccountForm.addEventListener("submit", handleCreateAccount);
+    </script>
+  </body>
+</html>
